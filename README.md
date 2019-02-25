@@ -29,10 +29,13 @@ Functions
     This function calls out to the OMDB API to retrieve information about any movie searching.  When it reaches out to the         OMDB API, it returns the title, year, IMDB rating, Rotten Tomatoes rating, country, language, plot and actors in the           movie.
     
    
+   https://user-images.githubusercontent.com/44039173/53346440-e69bd680-38cb-11e9-8c7e-9cc989b0b0a0.png
     
-    
+  
     
    "Do-what-it-says"
      This function takes into account any information in the text file attached (random.txt in this case) and will reach out        to the necessary API linked to that function.
+     
+    
      
      
