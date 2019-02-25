@@ -21,10 +21,14 @@ Functions
     
     
     
+  https://user-images.githubusercontent.com/44039173/53346361-bc4a1900-38cb-11e9-8710-8a58bcc42393.png
     
+   
     
   "Movie-this"
     This function calls out to the OMDB API to retrieve information about any movie searching.  When it reaches out to the         OMDB API, it returns the title, year, IMDB rating, Rotten Tomatoes rating, country, language, plot and actors in the           movie.
+    
+   
     
     
     
