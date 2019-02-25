@@ -1,4 +1,4 @@
-                                                Liri-Node-App
+                                                # Liri-Node-App
 
 Assignment
 
@@ -10,12 +10,16 @@ Functions
 
   "Concert-this"
     This function calls out to the Bands in Town API to retrieve information regarding venue, location, date and time of any       artist currently on tour.  It will give all of their upcoming shows and information regarding those shows.
-  
-    https://user-images.githubusercontent.com/44039173/53346191-9fade100-38cb-11e9-965d-eb5339843f6e.png
     
+    
+   https://user-images.githubusercontent.com/44039173/53346191-9fade100-38cb-11e9-965d-eb5339843f6e.png
+    
+ 
     
   "Spotify-this-song"
     This function calls out to the Spotify API to retrieve information regarding any song you search.  When it reaches out to     Spotify's API, it will return the artist name, track name, Spotify url, and album name for any song searched.
+    
+    
     
     
     
