@@ -1,142 +1,116 @@
-// REQUIRE .env FILE
 require("dotenv").config();
-
-// REQUIRE REQUEST
-let request = require("request");
-
-// REQUIRE MOMENT
-const moment = require('moment');
-
-//REQUIRE FILE SYSTEMS
-const fs = require("fs");
-
-// LINK KEY PAGE
-const keys = require("./keys.js");
-
-// INITIALIZE SPOTIFY
-const Spotify = require("node-spotify-api");
-const spotify = new Spotify(keys.spotify);
-
-// OMDB AND BANDS IN TOWN API'S
-let omdb = (keys.omdb);
-let bandsintown = (keys.bandsintown);
-
-
-// TAKE USER COMMAND AND INPUT
-let userInput = process.argv[2];
-let userQuery = process.argv.slice(3).join(" ");
-
-
-// APP LOGIC
-function userCommand(userInput, userQuery) {
-    // make a decision based on the command
-    switch (userInput) {
-        case "concert-this":
-            concertThis();
-            break;
-        case "spotify-this":
-            spotifyThisSong();
-            break;
-        case "movie-this":
-            movieThis();
-            break;
-        case "do-this":
-            doThis(userQuery);
-            break;
-        default:
-            console.log("I don't understand");
-            break;
-    }
-}
-
-userCommand(userInput, userQuery);
-
-function concertThis() {
-    console.log(`\n - - - - -\n\nSEARCHING FOR...${userQuery}'s next show...`);
-    // USE REQUEST AS OUR QUERY URL USING OUR USER QUERY VARIABLE AS THE PARAMETERS OF OUR SEARCH
-    request("https://rest.bandsintown.com/artists/" + userQuery + "/events?app_id=" + bandsintown, function (error, response, body) {
-        // IF THERE IS NO ERROR GIVE US A 200 STATUS CODE (EVERYTHING OK!)
+var request = require("request");
+var keys = require("./keys.js");
+var Spotify = require('node-spotify-api');
+var fs = require("fs");
+var moment = require("moment");
+//spotify constructor keys
+var spotify = new Spotify(keys.spotify);
+var liri_bot = {
+  cmd: process.argv[2],
+  arg: process.argv.slice(3).join("+"),
+  textFile: "log.txt",
+  switchCmd: function() {
+    switch (liri_bot.cmd) {
+      case 'concert-this':
+        this.concertThis(liri_bot.arg);
+        break;
+      case 'spotify-this-song':
+        this.spotifyThis(liri_bot.arg);
+        break;
+      case 'movie-this':
+        this.movieThis(liri_bot.arg);
+        break;
+      case 'do-what-it-says':
+        this.doWhatItSays();
+        break;
+      default:
+        console.log("Please use a valid command.")
+        return;
+      }
+    },
+    concertThis: function() {
+      var artist = this.arg;
+      var queryUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp&tracker_count=10";
+      request(queryUrl, function(error, response, body) {
         if (!error && response.statusCode === 200) {
-            // CAPTURE DATA AND USE JSON TO FORMAT
-            let userBand = JSON.parse(body);
-            // PARSE DATA AND USE FOR LOOP TO ACCESS PATHS TO DATA
-            if (userBand.length > 0) {
-                for (i = 0; i < 1; i++) {
-
-                    // CONSOLE DESIRED DATA USING E6 SYNTAX
-                    console.log(`\n\n\nArtist: ${userBand[i].lineup[0]} \nVenue: ${userBand[i].venue.name}\nVenue Location: ${userBand[i].venue.latitude},${userBand[i].venue.longitude}\nVenue City: ${userBand[i].venue.city}, ${userBand[i].venue.country}`)
-
-                    // MOMENT.JS TO FORMAT THE DATE MM/DD/YYYY
-                    let concertDate = moment(userBand[i].datetime).format("MM/DD/YYYY hh:00 A");
-                    console.log(`Date and Time: ${concertDate}\n\n- - - - -`);
-                };
-            } else {
-                console.log('Band or concert not found!');
-            };
-        };
-    });
-};
-
-function spotifyThisSong() {
-    console.log(`\n - - - - -\n\nSEARCHING FOR..."${userQuery}"`);
-
-    // IF USER QUERY NOT FOUND, PASS VALUE OF "ACE OF BASE" 
-    if (!userQuery) {
-        userQuery = "the sign ace of base"
-    };
-
-    // SPOTIFY SEARCH QUERY FORMAT
-    spotify.search({
+          body = JSON.parse(body);
+          for (var event in body) {
+            liri_bot.display("Venue: ", body[event].venue.name);
+            liri_bot.display("Location: ", body[event].venue.city + ", " + body[event].venue.region + ", " + body[event].venue.country);
+            var m = moment(body[event].datetime).format('MM/DD/YYYY, h:mm a').split(", ");
+            liri_bot.display("Date: ", m[0]);
+            liri_bot.display("Time: ", m[1]+ "\n");
+          }
+        }
+      });
+    },
+    spotifyThis: function(){
+      var song = this.arg;
+      if (!song) {
+        song = "The+Sign";
+        console.log(song);
+      }
+      spotify.search({
         type: 'track',
-        query: userQuery,
-        limit: 1
-    }, function (error, data) {
-        if (error) {
-            return console.log('Error occurred: ' + error);
+        query: song
+      }, function(err, data) {
+        if (err) {
+          return console.log('Error occurred: ' + err);
         }
-        // COLLECT SELECTED DATA IN AN ARRAY
-        let spotifyArr = data.tracks.items;
-
-        for (i = 0; i < spotifyArr.length; i++) {
-            console.log(`\nBA DA BOP!  That's for you...\n\nArtist: ${data.tracks.items[i].album.artists[0].name} \nSong: ${data.tracks.items[i].name}\nAlbum: ${data.tracks.items[i].album.name}\nSpotify link: ${data.tracks.items[i].external_urls.spotify}\n\n - - - - -`)
-        };
-    });
-}
-
-function movieThis() {
-    console.log(`\n - - - - -\n\nSEARCHING FOR..."${userQuery}"`);
-    if (!userQuery) {
-        userQuery = "mr nobody";
-    };
-    // REQUEST USING OMDB API
-    request("http://www.omdbapi.com/?t=" + userQuery + "&apikey=86fe999c", function (error, response, body) {
-        let userMovie = JSON.parse(body);
-
-        // BECAUSE THE ROTTEN TOMATOES RATING WAS NESTED IT WAS NECESSARY TO CAPTURE ITS VALUES IN AN ARRAY TO CREATE A PATH
-        let ratingsArr = userMovie.Ratings;
-        if (ratingsArr.length > 2) {}
-
+        data = data.tracks.items[0];
+        // console.log(data);
+        liri_bot.display("Artist(s) Name: ", data.artists[0].name);
+        liri_bot.display("Track Name: ", data.name);
+        liri_bot.display("Preview URL: ", data.preview_url);
+        liri_bot.display("Album: ", data.album.name);
+      });
+    },
+    movieThis: function(){
+      var movieName = this.arg;
+      if (!movieName) {
+        movieName = "Mr.+Nobody"
+      };
+      var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
+      request(queryUrl, function(error, response, body) {
         if (!error && response.statusCode === 200) {
-            console.log(`\nBA DA BOP!  That's for you...\n\nTitle: ${userMovie.Title}\nCast: ${userMovie.Actors}\nReleased: ${userMovie.Year}\nIMDb Rating: ${userMovie.imdbRating}\nRotten Tomatoes Rating: ${userMovie.Ratings[1].Value}\nCountry: ${userMovie.Country}\nLanguage: ${userMovie.Language}\nPlot: ${userMovie.Plot}\n\n- - - - -`)
-        } else {
-            return console.log("Movie able to be found. Error:" + error)
-        };
-    })
-};
-
-function doThis() {
-    // UTILIZE THE BUILT IN READFILE METHOD TO ACCESS RANDOM.TXT
-    fs.readFile("random.txt", "utf8", function (error, data) {
-        if (error) {
-            return console.log(error);
+          body = JSON.parse(body);
+          liri_bot.display("Title: ", body.Title);
+          liri_bot.display("Year: ", body.Year);
+          liri_bot.display("IMDB Rating: ", body.imdbRating);
+          if (body.Ratings[2]) {
+            liri_bot.display("Rotten Tomatoes Score: ", body.Ratings[2].Value);
+          }
+          liri_bot.display("Country: ", body.Country);
+          liri_bot.display("Language: ", body.Language);
+          liri_bot.display("Plot: ", body.Plot);
+          liri_bot.display("Actors: ", body.Actors);
         }
-        // CATCH DATA AND USE THE .SPLIT() METHOD TO SEPARATE OBJECTS WITHIN OUR NEW ARRAY
-        let dataArr = data.split(",");
-
-        // TAKE OBJECTS FROM RANDOM.TXT TO PASS AS PARAMETERS
-        userInput = dataArr[0];
-        userQuery = dataArr[1];
-        // CALL OUR FUNCTION WITH OUR NEW PARAMETERS...
-        userCommand(userInput, userQuery);
-    });
-};
+      });
+    },
+    doWhatItSays: function(){
+      fs.readFile("random.txt", "utf8", function(error, data) {
+        if (error) {
+          return console.log(error);
+        }
+        var dataArr = data.replace(/(\r\n|\n|\r)/gm, "").split(",");
+        for (var i = 0; i < dataArr.length; i += 2) {
+          liri_bot.cmd = dataArr[i];
+          liri_bot.arg = dataArr[i + 1].replace(/['"]+/g, '').split(' ').join("+");
+          liri_bot.switchCmd();
+        }
+      });
+    },
+    display: function(description, data){
+      console.log(description + data);
+      this.appendFile(description + data + "\n");
+    },
+    appendFile: function(file) {
+      fs.appendFile(this.textFile, file, function(err) {
+        if (err) {
+          console.log(err);
+        }
+      });
+    },
+}
+liri_bot.switchCmd();
