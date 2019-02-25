@@ -1,9 +1,11 @@
                                                 Liri-Node-App
 
 Assignment
+
   Create a LIRI bot that works as a command line node app to take in code and API calls and produce back usable data.
   
 Functions
+
    ![alt text](http://Users/shannonline/Desktop/code.png)
 
   "Concert-this"
